@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: conges-app
+    runtime: python
+    buildCommand: pip install -r requirements.txt && python -c "from app import init_db; init_db()"
+    startCommand: gunicorn app:app --workers 2 --bind 0.0.0.0:$PORT
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: conges-db
+          property: connectionString
+
+databases:
+  - name: conges-db
+    databaseName: conges
+    plan: free

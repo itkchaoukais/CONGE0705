@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GestionConges</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:      #F5F4F0;
+    --surface: #FFFFFF;
+    --border:  #E2E0D8;
+    --text:    #1A1917;
+    --muted:   #8A8880;
+    --accent:  #2D6A4F;
+    --accent2: #52B788;
+    --danger:  #C0392B;
+    --warn:    #D4891A;
+    --radius:  10px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ---- LOGIN ---- */
+  #login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1A3C34 0%, #2D6A4F 60%, #52B788 100%);
+  }
+
+  .login-card {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 48px 40px;
+    width: 380px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.18);
+  }
+
+  .login-card h1 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .login-card p {
+    color: var(--muted);
+    font-size: .9rem;
+    margin-bottom: 32px;
+  }
+
+  /* ---- LAYOUT ---- */
+  #app { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 0;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+  }
+
+  .sidebar-logo {
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 0 20px 24px;
+    border-bottom: 1px solid var(--border);
+    color: var(--accent);
+    letter-spacing: -.3px;
+  }
+
+  .sidebar-nav { padding: 16px 12px; flex: 1; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: .9rem;
+    font-weight: 500;
+    color: var(--muted);
+    transition: background .15s, color .15s;
+    margin-bottom: 4px;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+
+  .nav-item:hover { background: var(--bg); color: var(--text); }
+  .nav-item.active { background: #EAF4EE; color: var(--accent); }
+
+  .sidebar-footer {
+    padding: 16px 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .main {
+    margin-left: 220px;
+    flex: 1;
+    padding: 32px;
+    max-width: 1100px;
+  }
+
+  .page-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 24px;
+  }
+
+  /* ---- CARDS ---- */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+
+  .stat-label { font-size: .8rem; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
+  .stat-value { font-size: 2rem; font-weight: 600; margin-top: 4px; font-family: 'DM Mono', monospace; }
+
+  /* ---- FORMS ---- */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  label { display: block; font-size: .82rem; font-weight: 500; color: var(--muted); margin-bottom: 6px; }
+
+  input, select, textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: .9rem;
+    background: var(--bg);
+    color: var(--text);
+    transition: border-color .15s;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent2);
+    background: #fff;
+  }
+
+  textarea { resize: vertical; min-height: 80px; }
+
+  .form-full { grid-column: 1 / -1; }
+
+  /* ---- BUTTONS ---- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: .875rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: opacity .15s, transform .1s;
+  }
+
+  .btn:hover { opacity: .88; }
+  .btn:active { transform: scale(.98); }
+
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-danger  { background: var(--danger); color: #fff; }
+  .btn-ghost   { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+
+  /* ---- TABLE ---- */
+  .table-wrap { overflow-x: auto; }
+
+  table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+  th { text-align: left; padding: 10px 14px; color: var(--muted); font-weight: 500; font-size: .78rem; text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid var(--border); }
+  td { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg); }
+
+  /* ---- BADGE ---- */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: .75rem;
+    font-weight: 600;
+  }
+
+  .badge-wait    { background: #FEF3C7; color: #92400E; }
+  .badge-ok      { background: #D1FAE5; color: #065F46; }
+  .badge-refuse  { background: #FEE2E2; color: #991B1B; }
+
+  /* ---- MODAL ---- */
+  .modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-bg.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 32px;
+    width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 60px rgba(0,0,0,.2);
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+
+  .modal-header h2 { font-size: 1.1rem; font-weight: 600; }
+
+  /* ---- ALERT ---- */
+  .alert {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: .875rem;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  .alert.error   { background: #FEE2E2; color: var(--danger); display: block; }
+  .alert.success { background: #D1FAE5; color: #065F46; display: block; }
+
+  /* ---- UTILS ---- */
+  .hidden { display: none !important; }
+  .mt-16 { margin-top: 16px; }
+  .flex-end { display: flex; justify-content: flex-end; gap: 10px; }
+  .text-muted { color: var(--muted); font-size: .85rem; }
+  .mb-16 { margin-bottom: 16px; }
+
+  .user-info {
+    font-size: .85rem;
+    font-weight: 500;
+    padding: 0 20px;
+    margin-bottom: 12px;
+  }
+
+  .user-role {
+    font-size: .75rem;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  input[type="file"] {
+    padding: 8px;
+    background: var(--bg);
+  }
+
+  .action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: .8rem;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  .action-btn:hover { background: var(--bg); }
+  .action-btn.danger { color: var(--danger); }
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN ===================== -->
+<div id="login-screen">
+  <div class="login-card">
+    <h1>GestionConges</h1>
+    <p>Connectez-vous pour accéder à votre espace</p>
+    <div id="login-alert" class="alert"></div>
+    <div style="margin-bottom:14px">
+      <label>Adresse email</label>
+      <input type="email" id="login-email" placeholder="prenom@entreprise.com" autocomplete="email">
+    </div>
+    <div style="margin-bottom:24px">
+      <label>Mot de passe</label>
+      <input type="password" id="login-pw" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="doLogin()">Se connecter</button>
+    <p class="text-muted mt-16" style="font-size:.78rem;text-align:center">
+      Demo : employe@entreprise.com / Employe123!
+    </p>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app" class="hidden">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">🌿 GestionConges</div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">📊 Tableau de bord</button>
+      <button class="nav-item" onclick="showPage('demandes')" id="nav-demandes">📋 Mes demandes</button>
+      <button class="nav-item employe-only" onclick="openNouvelleDemande()" id="nav-nouvelle">➕ Nouvelle demande</button>
+      <button class="nav-item admin-only hidden" onclick="showPage('equipe')" id="nav-equipe">👥 Équipe</button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info mb-16">
+        <div id="sidebar-name">—</div>
+        <div class="user-role" id="sidebar-role">—</div>
+      </div>
+      <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="doLogout()">Déconnexion</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Dashboard -->
+    <div id="page-dashboard">
+      <div class="page-title">Tableau de bord</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total demandes</div>
+          <div class="stat-value" id="stat-total">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Approuvées</div>
+          <div class="stat-value" id="stat-approuve" style="color:var(--accent)">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">En attente</div>
+          <div class="stat-value" id="stat-attente" style="color:var(--warn)">—</div>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-weight:600;margin-bottom:16px">Dernières demandes</div>
+        <div class="table-wrap">
+          <table id="dashboard-table">
+            <thead>
+              <tr>
+                <th>Employé ID</th><th>Type</th><th>Début</th><th>Fin</th><th>Jours</th><th>Statut</th>
+              </tr>
+            </thead>
+            <tbody id="dashboard-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mes demandes -->
+    <div id="page-demandes" class="hidden">
+      <div class="page-title">Mes demandes</div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Type</th><th>Début</th><th>Fin</th><th>Jours</th><th>Motif</th><th>Statut</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="demandes-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Équipe (admin/superviseur) -->
+    <div id="page-equipe" class="hidden">
+      <div class="page-title">Toutes les demandes</div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID Emp.</th><th>Type</th><th>Début</th><th>Fin</th><th>Jours</th><th>Statut</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="equipe-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===== MODAL NOUVELLE DEMANDE ===== -->
+<div class="modal-bg" id="modal-nouvelle">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Nouvelle demande de congé</h2>
+      <button class="btn btn-ghost" onclick="closeModal('modal-nouvelle')">✕</button>
+    </div>
+    <div id="nouvelle-alert" class="alert"></div>
+    <div class="form-grid">
+      <div>
+        <label>Type de congé</label>
+        <select id="f-type">
+          <option value="Congé annuel">Congé annuel</option>
+          <option value="Congé maladie">Congé maladie</option>
+          <option value="Congé sans solde">Congé sans solde</option>
+          <option value="Congé maternité/paternité">Congé maternité/paternité</option>
+          <option value="Autre">Autre</option>
+        </select>
+      </div>
+      <div></div>
+      <div>
+        <label>Date de début</label>
+        <input type="date" id="f-debut">
+      </div>
+      <div>
+        <label>Date de fin</label>
+        <input type="date" id="f-fin">
+      </div>
+      <div class="form-full">
+        <label>Motif</label>
+        <textarea id="f-motif" placeholder="Décrivez brièvement le motif…"></textarea>
+      </div>
+      <div class="form-full">
+        <label>Document justificatif (optionnel)</label>
+        <input type="file" id="f-doc" accept=".pdf,.jpg,.jpeg,.png">
+      </div>
+    </div>
+    <div class="flex-end mt-16">
+      <button class="btn btn-ghost" onclick="closeModal('modal-nouvelle')">Annuler</button>
+      <button class="btn btn-primary" onclick="soumettreDemande()">Soumettre</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL TRAITER DEMANDE ===== -->
+<div class="modal-bg" id="modal-traiter">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Traiter la demande #<span id="traiter-id"></span></h2>
+      <button class="btn btn-ghost" onclick="closeModal('modal-traiter')">✕</button>
+    </div>
+    <div>
+      <label>Commentaire</label>
+      <textarea id="traiter-comment" placeholder="Commentaire optionnel…"></textarea>
+    </div>
+    <div class="flex-end mt-16">
+      <button class="btn btn-ghost" onclick="closeModal('modal-traiter')">Annuler</button>
+      <button class="btn btn-danger" onclick="traiterDemande('refuse')">Refuser</button>
+      <button class="btn btn-primary" onclick="traiterDemande('approuve')">Approuver</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentUser = null;
+let demandesData = [];
+let currentTraiterId = null;
+
+// ---- Auth ----
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw    = document.getElementById('login-pw').value;
+  const alert = document.getElementById('login-alert');
+  alert.className = 'alert';
+
+  const res  = await fetch('/api/login', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ email, mot_de_passe: pw })
+  });
+  const data = await res.json();
+
+  if (!res.ok) {
+    alert.textContent = data.error || 'Erreur';
+    alert.className = 'alert error';
+    return;
+  }
+
+  currentUser = data;
+  showApp();
+}
+
+async function doLogout() {
+  await fetch('/api/logout', { method: 'POST' });
+  currentUser = null;
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('app').classList.add('hidden');
+}
+
+// ---- App init ----
+async function showApp() {
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+
+  document.getElementById('sidebar-name').textContent =
+    (currentUser.prenom || '') + ' ' + (currentUser.nom || '');
+  document.getElementById('sidebar-role').textContent = currentUser.role;
+
+  // show admin tabs
+  if (currentUser.role !== 'employe') {
+    document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+    document.querySelectorAll('.employe-only').forEach(el => el.classList.add('hidden'));
+  }
+
+  await loadStats();
+  await loadDemandes();
+  showPage('dashboard');
+}
+
+function showPage(name) {
+  ['dashboard','demandes','equipe'].forEach(p => {
+    document.getElementById('page-' + p).classList.toggle('hidden', p !== name);
+    const nav = document.getElementById('nav-' + p);
+    if (nav) nav.classList.toggle('active', p === name);
+  });
+  if (name === 'equipe') renderEquipe();
+}
+
+// ---- Stats ----
+async function loadStats() {
+  const r = await fetch('/api/stats');
+  const d = await r.json();
+  document.getElementById('stat-total').textContent   = d.total    ?? '—';
+  document.getElementById('stat-approuve').textContent = d.approuve ?? '—';
+  document.getElementById('stat-attente').textContent  = d.en_attente ?? '—';
+}
+
+// ---- Demandes ----
+async function loadDemandes() {
+  const r = await fetch('/api/demandes');
+  demandesData = await r.json();
+  renderDashboard();
+  renderDemandes();
+}
+
+function statusBadge(s) {
+  if (s === 'approuve')   return '<span class="badge badge-ok">Approuvé</span>';
+  if (s === 'refuse')     return '<span class="badge badge-refuse">Refusé</span>';
+  return '<span class="badge badge-wait">En attente</span>';
+}
+
+function renderDashboard() {
+  const tbody = document.getElementById('dashboard-tbody');
+  const rows  = demandesData.slice(0, 8);
+  tbody.innerHTML = rows.map(d => `
+    <tr>
+      <td class="text-muted" style="font-family:'DM Mono',monospace">#${d.employe_id}</td>
+      <td>${d.type_conge}</td>
+      <td>${d.date_debut}</td>
+      <td>${d.date_fin}</td>
+      <td><b>${d.nb_jours}</b></td>
+      <td>${statusBadge(d.statut)}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="6" class="text-muted" style="text-align:center;padding:24px">Aucune demande</td></tr>';
+}
+
+function renderDemandes() {
+  const tbody = document.getElementById('demandes-tbody');
+  tbody.innerHTML = demandesData.map(d => `
+    <tr>
+      <td>${d.type_conge}</td>
+      <td>${d.date_debut}</td>
+      <td>${d.date_fin}</td>
+      <td><b>${d.nb_jours}</b></td>
+      <td class="text-muted">${d.motif || '—'}</td>
+      <td>${statusBadge(d.statut)}</td>
+      <td>
+        ${d.document_nom
+          ? `<a class="action-btn" href="/api/demandes/${d.id}/document" target="_blank">📎 Doc</a>`
+          : ''}
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="7" class="text-muted" style="text-align:center;padding:24px">Aucune demande</td></tr>';
+}
+
+function renderEquipe() {
+  const tbody = document.getElementById('equipe-tbody');
+  tbody.innerHTML = demandesData.map(d => `
+    <tr>
+      <td style="font-family:'DM Mono',monospace">#${d.employe_id}</td>
+      <td>${d.type_conge}</td>
+      <td>${d.date_debut}</td>
+      <td>${d.date_fin}</td>
+      <td><b>${d.nb_jours}</b></td>
+      <td>${statusBadge(d.statut)}</td>
+      <td>
+        ${d.statut === 'en_attente'
+          ? `<button class="action-btn" onclick="openTraiter(${d.id})">Traiter</button>`
+          : ''}
+        ${d.document_nom
+          ? `<a class="action-btn" href="/api/demandes/${d.id}/document" target="_blank">📎</a>`
+          : ''}
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="7" class="text-muted" style="text-align:center;padding:24px">Aucune demande</td></tr>';
+}
+
+// ---- Nouvelle demande ----
+function openNouvelleDemande() {
+  document.getElementById('nouvelle-alert').className = 'alert';
+  openModal('modal-nouvelle');
+}
+
+async function soumettreDemande() {
+  const alert = document.getElementById('nouvelle-alert');
+  alert.className = 'alert';
+
+  const debut = document.getElementById('f-debut').value;
+  const fin   = document.getElementById('f-fin').value;
+  const type  = document.getElementById('f-type').value;
+  const motif = document.getElementById('f-motif').value;
+  const file  = document.getElementById('f-doc').files[0];
+
+  if (!debut || !fin || !type) {
+    alert.textContent = 'Veuillez remplir tous les champs obligatoires';
+    alert.className = 'alert error';
+    return;
+  }
+
+  let document_data = null;
+  let document_nom  = null;
+  let document_type = null;
+
+  if (file) {
+    document_data = await fileToBase64(file);
+    document_nom  = file.name;
+    document_type = file.type;
+  }
+
+  const res = await fetch('/api/demandes', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ type_conge: type, date_debut: debut, date_fin: fin, motif, document_data, document_nom, document_type })
+  });
+  const d = await res.json();
+
+  if (!res.ok) {
+    alert.textContent = d.error || 'Erreur';
+    alert.className = 'alert error';
+    return;
+  }
+
+  closeModal('modal-nouvelle');
+  await loadDemandes();
+  await loadStats();
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ---- Traiter demande ----
+function openTraiter(id) {
+  currentTraiterId = id;
+  document.getElementById('traiter-id').textContent = id;
+  document.getElementById('traiter-comment').value = '';
+  openModal('modal-traiter');
+}
+
+async function traiterDemande(statut) {
+  const comment = document.getElementById('traiter-comment').value;
+  const res = await fetch(`/api/demandes/${currentTraiterId}/traiter`, {
+    method: 'PUT',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ statut, commentaire_superviseur: comment })
+  });
+
+  if (res.ok) {
+    closeModal('modal-traiter');
+    await loadDemandes();
+    await loadStats();
+  }
+}
+
+// ---- Modals ----
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ---- Auto-login check ----
+(async () => {
+  try {
+    const r = await fetch('/api/me');
+    if (r.ok) {
+      currentUser = await r.json();
+      showApp();
+    }
+  } catch(e) {}
+})();
+
+// Enter key on login
+document.getElementById('login-pw').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+</script>
+</body>
+</html>
