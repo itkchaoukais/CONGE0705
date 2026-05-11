@@ -4,7 +4,7 @@ from functools import wraps
 from flask import Flask, render_template, request, jsonify, session, send_file
 
 
-import psycopg2-binary
+import psycopg2
 import psycopg2.extras
 
 # =============================
